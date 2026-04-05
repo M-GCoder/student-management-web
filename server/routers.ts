@@ -500,35 +500,40 @@ const studentPortalRouter = router({
   getCurrentMonthFee: publicProcedure
     .input(z.object({ studentId: z.number(), month: z.string() }))
     .query(async ({ input }) => {
-      return await getCurrentMonthPayment(input.studentId, input.month);
+      const payment = await getCurrentMonthPayment(input.studentId, input.month);
+      return payment ?? null;
     }),
 
   // Get payment history
   getPaymentHistory: publicProcedure
     .input(z.object({ studentId: z.number() }))
     .query(async ({ input }) => {
-      return await getPaymentsByStudent(input.studentId);
+      const payments = await getPaymentsByStudent(input.studentId);
+      return payments ?? [];
     }),
 
   // Get latest exam result
   getLatestResult: publicProcedure
     .input(z.object({ studentId: z.number() }))
     .query(async ({ input }) => {
-      return await getLatestResult(input.studentId);
+      const result = await getLatestResult(input.studentId);
+      return result ?? null;
     }),
 
   // Get all exam results
   getAllResults: publicProcedure
     .input(z.object({ studentId: z.number() }))
     .query(async ({ input }) => {
-      return await getResultsByStudent(input.studentId);
+      const results = await getResultsByStudent(input.studentId);
+      return results ?? [];
     }),
 
   // Get student enrollments
   getEnrollments: publicProcedure
     .input(z.object({ studentId: z.number() }))
     .query(async ({ input }) => {
-      return await getEnrollmentsByStudent(input.studentId);
+      const enrollments = await getEnrollmentsByStudent(input.studentId);
+      return enrollments ?? [];
     }),
 });
 

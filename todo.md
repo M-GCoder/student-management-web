@@ -59,9 +59,12 @@
 ## Phase 5: Testing & Refinement
 - [ ] Write unit tests for authentication
 - [ ] Write tests for admin procedures
-- [ ] Write tests for student queries
+- [x] Write tests for student queries
 - [ ] Test email notifications
 - [ ] Responsive design testing
+
+## Bug Fixes
+- [x] Fix portal router queries returning undefined instead of null (caused API errors on student dashboard)
 
 ## UI/UX
 - [x] Match SMIT portal style with green accents
