@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { LogOut, Users, BookOpen, DollarSign, BarChart3 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import StudentManagement from '@/components/admin/StudentManagement';
@@ -110,34 +111,57 @@ export default function AdminDashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="border-b border-border">
               <TabsList className="w-full justify-start rounded-none bg-transparent p-0 h-auto">
-                <TabsTrigger
-                  value="students"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Students
-                </TabsTrigger>
-                <TabsTrigger
-                  value="classes"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3"
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Classes
-                </TabsTrigger>
-                <TabsTrigger
-                  value="payments"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3"
-                >
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Payments
-                </TabsTrigger>
-                <TabsTrigger
-                  value="results"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Results
-                </TabsTrigger>
+                {/* Students Tab */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="students"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <Users className="w-5 h-5" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Manage Students</TooltipContent>
+                </Tooltip>
+
+                {/* Classes Tab */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="classes"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Manage Classes</TooltipContent>
+                </Tooltip>
+
+                {/* Payments Tab */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="payments"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <DollarSign className="w-5 h-5" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Manage Payments</TooltipContent>
+                </Tooltip>
+
+                {/* Results Tab */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="results"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:bg-transparent px-4 py-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <BarChart3 className="w-5 h-5" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Manage Results</TooltipContent>
+                </Tooltip>
               </TabsList>
             </div>
 
