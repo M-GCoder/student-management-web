@@ -11,12 +11,21 @@ import StudentsPage from "./pages/admin/StudentsPage";
 import ClassesPage from "./pages/admin/ClassesPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import ResultsPage from "./pages/admin/ResultsPage";
+import StudentHome from "./pages/student/StudentHome";
+import StudentDashboardPage from "./pages/student/StudentDashboardPage";
+import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
+import StudentResultsPage from "./pages/student/StudentResultsPage";
+import StudentAnnouncementsPage from "./pages/student/StudentAnnouncementsPage";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Login} />
-      <Route path={"/student/dashboard"} component={StudentDashboard} />
+      <Route path={"/student/home"} component={StudentHome} />
+      <Route path={"/student/dashboard"} component={StudentDashboardPage} />
+      <Route path={"/student/payments"} component={StudentPaymentsPage} />
+      <Route path={"/student/results"} component={StudentResultsPage} />
+      <Route path={"/student/announcements"} component={StudentAnnouncementsPage} />
       <Route path={"/admin/dashboard"} component={AdminDashboard} />
       <Route path={"/admin/students"} component={StudentsPage} />
       <Route path={"/admin/classes"} component={ClassesPage} />
