@@ -51,10 +51,10 @@ export default function Login() {
         {/* Header with Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-lg mb-4">
-            <span className="text-2xl font-bold text-white">SMIT</span>
+            <span className="text-2xl font-bold text-white">SSCC</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Student Portal</h1>
-          <p className="text-muted-foreground">Saylani Welfare Int Trust</p>
+          <p className="text-muted-foreground">Sir Syed Coaching Centre</p>
         </div>
 
         {/* Login Card */}
@@ -71,7 +71,7 @@ export default function Login() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">Login</h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Kindly provide the Student ID and password used during SMIT course registration.
+                  Kindly provide the Student ID and password used during SSCC course registration.
                 </p>
               </div>
 
@@ -140,7 +140,7 @@ export default function Login() {
                 <Button
                   variant="outline"
                   className="w-full text-accent border-accent hover:bg-accent/5"
-                  onClick={() => navigate('/admin')}
+                  onClick={() => navigate('/admin/dashboard')}
                 >
                   Login as Teacher
                 </Button>
@@ -151,7 +151,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2024 Saylani Welfare Int Trust. All rights reserved.
+          © 2026 SIR SYED COACHING CENTRE. All rights reserved.
         </p>
       </div>
     </div>
