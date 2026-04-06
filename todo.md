@@ -67,6 +67,7 @@
 - [x] Fix portal router queries returning undefined instead of null (caused API errors on student dashboard)
 - [x] Replace text tabs with icons and add tooltips in Admin Dashboard
 - [x] Refactor admin dashboard into separate pages (Students, Classes, Payments, Results)
+- [x] Remove 'Login as Teacher' button and implement admin credential login logic
 
 ## UI/UX
 - [x] Match SMIT portal style with green accents

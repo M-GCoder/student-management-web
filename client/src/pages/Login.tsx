@@ -42,6 +42,14 @@ export default function Login() {
       return;
     }
 
+    // Check for admin credentials
+    if (studentId === 'admin@gmail.com' && password === 'admin12345') {
+      localStorage.setItem('adminToken', 'admin-session');
+      localStorage.setItem('isAdmin', 'true');
+      navigate('/admin/dashboard');
+      return;
+    }
+
     studentLoginMutation.mutate({ studentId, password });
   };
 
@@ -136,15 +144,7 @@ export default function Login() {
                 </Button>
               </form>
 
-              <div className="pt-4 border-t border-border">
-                <Button
-                  variant="outline"
-                  className="w-full text-accent border-accent hover:bg-accent/5"
-                  onClick={() => navigate('/admin/dashboard')}
-                >
-                  Login as Teacher
-                </Button>
-              </div>
+
             </TabsContent>
           </Tabs>
         </Card>
