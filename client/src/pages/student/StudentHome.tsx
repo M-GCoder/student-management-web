@@ -50,32 +50,32 @@ export default function StudentHome() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Active Course Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Active course</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Current Class</h2>
 
           {/* Active Course Card */}
           <Card className="p-6 border border-border shadow-sm bg-blue-50 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">Active course with current Class</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Class 11 A</h3>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-5 h-5 bg-accent rounded flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="font-semibold text-foreground">AI</span>
+                  <span className="font-semibold text-foreground">A1</span>
                 </div>
               </div>
               <div className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium">
-                DROPOUT
+                Enrolled
               </div>
             </div>
 
             {/* Class Schedule */}
             <div className="space-y-2 mb-6">
               <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
-                Mon 09:00 PM – 11:00 PM
+                Mon 05:10 PM – 7:40 PM
               </div>
               <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
-                Wed 09:00 PM – 11:00 PM
+                Wed 05:10 PM – 8:30 PM
               </div>
               <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
                 Fri 09:00 PM – 11:00 PM
@@ -89,7 +89,7 @@ export default function StudentHome() {
                   <div className="w-8 h-8 text-gray-600">📋</div>
                   <div>
                     <p className="text-xs text-muted-foreground">Roll no:</p>
-                    <p className="font-semibold text-foreground">430498</p>
+                    <p className="font-semibold text-foreground">35</p>
                   </div>
                 </div>
               </Card>
@@ -98,7 +98,7 @@ export default function StudentHome() {
                   <div className="w-8 h-8 text-gray-600">📍</div>
                   <div>
                     <p className="text-xs text-muted-foreground">Campus:</p>
-                    <p className="font-semibold text-foreground">Gulshan</p>
+                    <p className="font-semibold text-foreground">PIB Colony</p>
                   </div>
                 </div>
               </Card>

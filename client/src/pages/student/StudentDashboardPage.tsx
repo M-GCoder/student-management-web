@@ -90,7 +90,7 @@ export default function StudentDashboardPage() {
                 Current
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mb-1">Attendance</p>
+            <p className="text-sm font-bold text-foreground mb-1">Attendance</p>
             <h3 className="text-3xl font-bold text-foreground mb-2">85%</h3>
             <p className="text-xs text-muted-foreground">Classes attended</p>
           </Card>
@@ -141,7 +141,7 @@ export default function StudentDashboardPage() {
           <Card className="p-4 border border-border shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-center">
               <div className="text-3xl mb-2">📚</div>
-              <p className="text-sm font-medium text-foreground">Study Materials</p>
+              <p className="text-sm font-medium text-foreground">Test Schedule</p>
             </div>
           </Card>
         </div>

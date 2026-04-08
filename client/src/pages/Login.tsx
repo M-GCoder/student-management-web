@@ -79,7 +79,7 @@ export default function Login() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">Login</h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Kindly provide the Student ID and password used during SSCC course registration.
+                  Kindly provide the Student ID and password used during SSCC class registration.
                 </p>
               </div>
 
