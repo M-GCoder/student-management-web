@@ -16,6 +16,8 @@ import StudentDashboardPage from "./pages/student/StudentDashboardPage";
 import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
 import StudentResultsPage from "./pages/student/StudentResultsPage";
 import StudentAnnouncementsPage from "./pages/student/StudentAnnouncementsPage";
+import AdminHome from "./pages/admin/AdminHome";
+import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 
 function Router() {
   return (
@@ -27,10 +29,12 @@ function Router() {
       <Route path={"/student/results"} component={StudentResultsPage} />
       <Route path={"/student/announcements"} component={StudentAnnouncementsPage} />
       <Route path={"/admin/dashboard"} component={AdminDashboard} />
+      <Route path={"/admin/home"} component={AdminHome} />
       <Route path={"/admin/students"} component={StudentsPage} />
       <Route path={"/admin/classes"} component={ClassesPage} />
       <Route path={"/admin/payments"} component={PaymentsPage} />
       <Route path={"/admin/results"} component={ResultsPage} />
+      <Route path={"/admin/announcements"} component={AnnouncementsPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

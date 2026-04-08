@@ -46,7 +46,8 @@ export default function Login() {
     if (studentId === 'admin@gmail.com' && password === 'admin12345') {
       localStorage.setItem('adminToken', 'admin-session');
       localStorage.setItem('isAdmin', 'true');
-      navigate('/admin/dashboard');
+      localStorage.setItem('adminSession', 'active');
+      navigate('/admin/home');
       return;
     }
 
