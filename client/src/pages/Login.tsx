@@ -10,7 +10,7 @@ import { trpc } from '@/lib/trpc';
 export default function Login() {
   const [, setLocation] = useLocation();
   const navigate = (path: string) => setLocation(path);
-  const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -36,14 +36,14 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    if (!studentId.trim() || !password.trim()) {
-      setError('Please enter both Student ID and Password');
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both Email and Password');
       setLoading(false);
       return;
     }
 
     // Check for admin credentials
-    if (studentId === 'admin@gmail.com' && password === 'admin12345') {
+    if (email === 'admin@gmail.com' && password === 'admin12345') {
       localStorage.setItem('adminToken', 'admin-session');
       localStorage.setItem('isAdmin', 'true');
       localStorage.setItem('adminSession', 'active');
@@ -51,7 +51,7 @@ export default function Login() {
       return;
     }
 
-    studentLoginMutation.mutate({ studentId, password });
+    studentLoginMutation.mutate({ email, password });
   };
 
   return (
@@ -80,7 +80,7 @@ export default function Login() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">Login</h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Kindly provide the Student ID and password used during SSCC class registration.
+                  Kindly provide the Email and password used during SSCC class registration.
                 </p>
               </div>
 
@@ -93,15 +93,15 @@ export default function Login() {
 
               <form onSubmit={handleStudentLogin} className="space-y-4">
                 <div>
-                  <label htmlFor="studentId" className="form-label">
-                    Student ID <span className="text-destructive">*</span>
+                  <label htmlFor="email" className="form-label">
+                    Email <span className="text-destructive">*</span>
                   </label>
                   <Input
-                    id="studentId"
-                    type="text"
-                    placeholder="Enter your Student ID"
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
                     className="input-field"
                   />

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
   getStudentByStudentId,
+  getStudentByEmail,
   getStudentById,
   getAllStudents,
   getStudentsByClass,
@@ -45,11 +46,11 @@ import {
 
 export const studentLoginProcedure = publicProcedure
   .input(z.object({
-    studentId: z.string().min(1, "Student ID is required"),
+    email: z.string().email("Valid email is required"),
     password: z.string().min(1, "Password is required"),
   }))
   .mutation(async ({ input, ctx }) => {
-    const student = await getStudentByStudentId(input.studentId);
+    const student = await getStudentByEmail(input.email);
     
     if (!student) {
       throw new TRPCError({

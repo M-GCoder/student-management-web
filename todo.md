@@ -80,3 +80,9 @@
 ## Admin Portal Redesign
 - [x] Rebuild admin home page with System Overview, Weekly Activity chart, and stat cards
 - [x] Create separate admin pages with icon-based bottom navigation
+
+## Current Work
+- [x] Replace Student ID with Email in login form
+- [x] Update portal.login procedure to accept email instead of studentId
+- [x] Update database queries to find students by email
+- [x] Update student dashboard to display email-based login info

@@ -114,6 +114,14 @@ export async function getStudentByStudentId(studentId: string): Promise<Student 
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getStudentByEmail(email: string): Promise<Student | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(students).where(eq(students.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getStudentById(id: number): Promise<Student | undefined> {
   const db = await getDb();
   if (!db) return undefined;
