@@ -82,7 +82,7 @@ export const studentLoginProcedure = publicProcedure
 
     // Fallback to local database
     const student = await getStudentByEmail(input.email);
-    
+
     if (!student) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -98,7 +98,7 @@ export const studentLoginProcedure = publicProcedure
     }
 
     const passwordValid = verifyPassword(input.password, student.passwordHash);
-    
+
     if (!passwordValid) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -197,10 +197,7 @@ const studentManagementRouter = router({
       firstName: z.string().min(1, "First name is required"),
       lastName: z.string().min(1, "Last name is required"),
       email: z.string().email("Valid email is required"),
-      phone: z.string().optional(),
       password: z.string().min(6, "Password must be at least 6 characters"),
-      dateOfBirth: z.string().optional(),
-      address: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const studentId = generateStudentId();
@@ -211,10 +208,7 @@ const studentManagementRouter = router({
         firstName: input.firstName,
         lastName: input.lastName,
         email: input.email,
-        phone: input.phone,
         passwordHash,
-        dateOfBirth: input.dateOfBirth,
-        address: input.address,
       });
 
       return {
@@ -279,11 +273,8 @@ const classManagementRouter = router({
   create: adminProcedure
     .input(z.object({
       className: z.string().min(1, "Class name is required"),
-      description: z.string().optional(),
-      instructor: z.string().optional(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
       capacity: z.number().optional(),
+      classTimings: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       return await createClass(input);
@@ -294,11 +285,8 @@ const classManagementRouter = router({
     .input(z.object({
       id: z.number(),
       className: z.string().optional(),
-      description: z.string().optional(),
-      instructor: z.string().optional(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
       capacity: z.number().optional(),
+      classTimings: z.string().optional(),
       status: z.enum(["active", "inactive", "completed"]).optional(),
     }))
     .mutation(async ({ input }) => {
@@ -329,6 +317,27 @@ const classManagementRouter = router({
     .input(z.object({ classId: z.number() }))
     .query(async ({ input }) => {
       return await getEnrollmentsByClass(input.classId);
+    }),
+
+  // Bulk enroll students in class
+  bulkEnrollStudents: adminProcedure
+    .input(z.object({
+      classId: z.number(),
+      studentIds: z.array(z.number()),
+    }))
+    .mutation(async ({ input }) => {
+      const existingEnrollments = await getEnrollmentsByClass(input.classId);
+      const existingStudentIds = new Set(existingEnrollments.map(e => e.studentId));
+
+      const newStudentIds = input.studentIds.filter(id => !existingStudentIds.has(id));
+      const results = [];
+      for (const studentId of newStudentIds) {
+        const enrollment = await createEnrollment(studentId, input.classId);
+        // Also update the student's classId field
+        await updateStudent(studentId, { classId: input.classId });
+        results.push(enrollment);
+      }
+      return { success: true, enrolled: results.length };
     }),
 });
 
@@ -585,6 +594,14 @@ const studentPortalRouter = router({
     .query(async ({ input }) => {
       const enrollments = await getEnrollmentsByStudent(input.studentId);
       return enrollments ?? [];
+    }),
+
+  // Get class with timings for student portal
+  getClassWithTimings: publicProcedure
+    .input(z.object({ classId: z.number() }))
+    .query(async ({ input }) => {
+      const classData = await getClassById(input.classId);
+      return classData ?? null;
     }),
 });
 
