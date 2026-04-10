@@ -2,16 +2,61 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Home, LayoutGrid, Wallet, GraduationCap, Bell, LogOut, User, ChevronRight } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+
+interface ClassTiming {
+  day: string;
+  startTime: string;
+  endTime: string;
+}
+
+function formatTime(time24: string): string {
+  if (!time24) return time24;
+  const [h, m] = time24.split(':');
+  const hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${m} ${ampm}`;
+}
+
+function parseTimings(timingsStr: string | null | undefined): ClassTiming[] {
+  if (!timingsStr) return [];
+  try {
+    return JSON.parse(timingsStr);
+  } catch {
+    return [];
+  }
+}
 
 export default function StudentHome() {
   const [, setLocation] = useLocation();
   const studentName = localStorage.getItem('studentName') || 'Student';
+  const studentIdStr = localStorage.getItem('studentId');
+  const studentId = studentIdStr ? parseInt(studentIdStr, 10) : null;
 
   const handleLogout = () => {
     localStorage.removeItem('studentId');
     localStorage.removeItem('studentName');
     setLocation('/');
   };
+
+  // Fetch student enrollments
+  const { data: enrollments = [] } = trpc.portal.getEnrollments.useQuery(
+    { studentId: studentId! },
+    { enabled: studentId !== null }
+  );
+
+  // Get the classId from the first active enrollment
+  const activeEnrollment = enrollments.find((e: any) => e.status === 'active') || enrollments[0];
+  const classId = activeEnrollment?.classId;
+
+  // Fetch class details with timings
+  const { data: classData } = trpc.portal.getClassWithTimings.useQuery(
+    { classId: classId! },
+    { enabled: classId !== undefined && classId !== null }
+  );
+
+  const classTimings = parseTimings(classData?.classTimings);
 
   const navigationItems = [
     { icon: Home, label: 'Home', path: '/student/home', active: true },
@@ -56,31 +101,39 @@ export default function StudentHome() {
           <Card className="p-6 border border-border shadow-sm bg-blue-50 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">Class 11 A</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  {classData?.className || 'No class assigned'}
+                </h3>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-5 h-5 bg-accent rounded flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
                   <span className="font-semibold text-foreground">A1</span>
                 </div>
               </div>
               <div className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium">
-                Enrolled
+                {activeEnrollment ? 'Enrolled' : 'Not Enrolled'}
               </div>
             </div>
 
-            {/* Class Schedule */}
-            <div className="space-y-2 mb-6">
-              <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
-                Mon 05:10 PM – 7:40 PM
+            {/* Class Schedule - Dynamic from backend */}
+            {classTimings.length > 0 && (
+              <div className="space-y-2 mb-6">
+                {classTimings.map((timing, index) => (
+                  <div
+                    key={index}
+                    className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground"
+                  >
+                    {timing.day} {formatTime(timing.startTime)} – {formatTime(timing.endTime)}
+                  </div>
+                ))}
               </div>
-              <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
-                Wed 05:10 PM – 8:30 PM
+            )}
+
+            {classTimings.length === 0 && classData && (
+              <div className="mb-6">
+                <div className="bg-white px-4 py-2 rounded-lg text-sm text-muted-foreground">
+                  No class timings set yet.
+                </div>
               </div>
-              <div className="bg-white px-4 py-2 rounded-lg text-sm font-medium text-foreground">
-                Fri 09:00 PM – 11:00 PM
-              </div>
-            </div>
+            )}
 
             {/* Info Cards */}
             <div className="grid grid-cols-2 gap-4">
@@ -119,7 +172,7 @@ export default function StudentHome() {
                   <div className="bg-yellow-100 text-yellow-700 px-4 py-1 rounded-full text-sm font-medium mb-4">
                     PENDING
                   </div>
-                  <p className="text-2xl font-bold text-foreground">Rs: 1000 /-</p>
+                  <p className="text-2xl font-bold text-foreground">Rs: 5000 /-</p>
                 </div>
               </div>
             </Card>
@@ -136,11 +189,10 @@ export default function StudentHome() {
               <button
                 key={item.path}
                 onClick={() => setLocation(item.path)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
-                  item.active
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${item.active
+                  ? 'bg-accent text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
               >
                 <Icon className={`w-6 h-6 ${item.active ? 'text-white' : ''}`} />
                 <span className="text-xs font-medium">{item.label}</span>
