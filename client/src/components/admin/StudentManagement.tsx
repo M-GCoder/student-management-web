@@ -15,10 +15,7 @@ export default function StudentManagement() {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
-    password: '',
-    dateOfBirth: '',
-    address: '',
+    password: ''
   });
 
   // Fetch students
@@ -32,10 +29,7 @@ export default function StudentManagement() {
         firstName: '',
         lastName: '',
         email: '',
-        phone: '',
-        password: '',
-        dateOfBirth: '',
-        address: '',
+        password: ''
       });
       setIsDialogOpen(false);
       refetch();
@@ -100,7 +94,7 @@ export default function StudentManagement() {
             <form onSubmit={handleCreateStudent} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="form-label">First Name *</label>
+                  <label className="form-label">First Name*</label>
                   <Input
                     type="text"
                     placeholder="First name"
@@ -137,17 +131,6 @@ export default function StudentManagement() {
               </div>
 
               <div>
-                <label className="form-label">Phone</label>
-                <Input
-                  type="tel"
-                  placeholder="+92 300 1234567"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="input-field"
-                />
-              </div>
-
-              <div>
                 <label className="form-label">Password *</label>
                 <Input
                   type="password"
@@ -155,31 +138,6 @@ export default function StudentManagement() {
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="form-label">Date of Birth</label>
-                <Input
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dateOfBirth: e.target.value })
-                  }
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="form-label">Address</label>
-                <Input
-                  type="text"
-                  placeholder="Street address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
                   }
                   className="input-field"
                 />
@@ -215,9 +173,7 @@ export default function StudentManagement() {
               <th className="table-header text-left">Student ID</th>
               <th className="table-header text-left">Name</th>
               <th className="table-header text-left">Email</th>
-              <th className="table-header text-left">Phone</th>
               <th className="table-header text-left">Status</th>
-              <th className="table-header text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -228,16 +184,14 @@ export default function StudentManagement() {
                   {student.firstName} {student.lastName}
                 </td>
                 <td className="table-cell text-xs">{student.email}</td>
-                <td className="table-cell text-xs">{('phone' in student && student.phone) || '-'}</td>
                 <td className="table-cell">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      student.status === 'active'
-                        ? 'badge-success'
-                        : student.status === 'inactive'
-                          ? 'badge-pending'
-                          : 'badge-danger'
-                    }`}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.status === 'active'
+                      ? 'badge-success'
+                      : student.status === 'inactive'
+                        ? 'badge-pending'
+                        : 'badge-danger'
+                      }`}
                   >
                     {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
                   </span>
