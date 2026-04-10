@@ -1,7 +1,7 @@
 import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, 
+import {
+  InsertUser,
   users,
   students,
   classes,
@@ -149,10 +149,7 @@ export async function createStudent(data: {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
   passwordHash: string;
-  dateOfBirth?: string;
-  address?: string;
 }): Promise<Student> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -200,11 +197,8 @@ export async function getClassById(id: number): Promise<Class | undefined> {
 
 export async function createClass(data: {
   className: string;
-  description?: string;
-  instructor?: string;
-  startDate?: string;
-  endDate?: string;
   capacity?: number;
+  classTimings?: string;
 }): Promise<Class> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
