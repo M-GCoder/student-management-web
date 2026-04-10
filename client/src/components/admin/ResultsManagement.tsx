@@ -97,7 +97,7 @@ export default function ResultsManagement() {
     // Determine grade
     const percentageNum = parseFloat(percentage);
     let grade = 'F';
-    if (percentageNum >= 90) grade = 'A';
+    if (percentageNum >= 80) grade = 'A+';
     else if (percentageNum >= 80) grade = 'B';
     else if (percentageNum >= 70) grade = 'C';
     else if (percentageNum >= 60) grade = 'D';
@@ -156,23 +156,6 @@ export default function ResultsManagement() {
               <DialogTitle>Create Exam Result</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateResult} className="space-y-4">
-              <div>
-                <label className="form-label">Student *</label>
-                <select
-                  value={formData.studentId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, studentId: e.target.value })
-                  }
-                  className="input-field"
-                >
-                  <option value="">Select a student</option>
-                  {students.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.firstName} {student.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
               <div>
                 <label className="form-label">Class *</label>
@@ -232,31 +215,6 @@ export default function ResultsManagement() {
                     className="input-field"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="form-label">Exam Date *</label>
-                <Input
-                  type="date"
-                  value={formData.examDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, examDate: e.target.value })
-                  }
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="form-label">Remarks</label>
-                <Input
-                  type="text"
-                  placeholder="Additional remarks"
-                  value={formData.remarks}
-                  onChange={(e) =>
-                    setFormData({ ...formData, remarks: e.target.value })
-                  }
-                  className="input-field"
-                />
               </div>
 
               <div className="flex gap-3 pt-4">
