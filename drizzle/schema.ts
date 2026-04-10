@@ -1,9 +1,9 @@
-import { 
-  int, 
-  mysqlEnum, 
-  mysqlTable, 
-  text, 
-  timestamp, 
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
   varchar,
   decimal,
   boolean,
@@ -45,12 +45,9 @@ export const students = mysqlTable("students", {
   firstName: varchar("firstName", { length: 100 }).notNull(),
   lastName: varchar("lastName", { length: 100 }).notNull(),
   email: varchar("email", { length: 320 }).notNull(),
-  phone: varchar("phone", { length: 20 }),
   passwordHash: text("passwordHash").notNull(), // Hashed password
   classId: int("classId"), // Current class enrollment
   status: mysqlEnum("status", ["active", "inactive", "graduated"]).default("active").notNull(),
-  dateOfBirth: varchar("dateOfBirth", { length: 10 }), // YYYY-MM-DD format
-  address: text("address"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -67,11 +64,8 @@ export type InsertStudent = typeof students.$inferInsert;
 export const classes = mysqlTable("classes", {
   id: int("id").autoincrement().primaryKey(),
   className: varchar("className", { length: 100 }).notNull(),
-  description: text("description"),
-  instructor: varchar("instructor", { length: 100 }),
-  startDate: varchar("startDate", { length: 10 }), // YYYY-MM-DD
-  endDate: varchar("endDate", { length: 10 }), // YYYY-MM-DD
   capacity: int("capacity"),
+  classTimings: text("classTimings"), // JSON array of {day, startTime, endTime}
   status: mysqlEnum("status", ["active", "inactive", "completed"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
