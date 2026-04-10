@@ -228,7 +228,7 @@ export default function StudentManagement() {
                   {student.firstName} {student.lastName}
                 </td>
                 <td className="table-cell text-xs">{student.email}</td>
-                <td className="table-cell text-xs">{student.phone || '-'}</td>
+                <td className="table-cell text-xs">{('phone' in student && student.phone) || '-'}</td>
                 <td className="table-cell">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

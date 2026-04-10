@@ -86,3 +86,14 @@
 - [x] Update portal.login procedure to accept email instead of studentId
 - [x] Update database queries to find students by email
 - [x] Update student dashboard to display email-based login info
+
+
+## Supabase Integration
+- [x] Set up Supabase credentials (URL and API key)
+- [x] Create Supabase students table with email/password fields
+- [x] Create Supabase payments table with student_id and payment records
+- [x] Implement Supabase authentication for student login
+- [x] Fetch students from Supabase in admin add students section
+- [x] Fetch payment data from Supabase for student dashboard
+- [x] Sync payment records between app and Supabase
+- [x] Test student login with Supabase credentials (15 tests passing)

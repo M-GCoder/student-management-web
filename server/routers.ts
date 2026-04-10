@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
 import { TRPCError } from "@trpc/server";
 import {
   getStudentByStudentId,
@@ -50,6 +51,36 @@ export const studentLoginProcedure = publicProcedure
     password: z.string().min(1, "Password is required"),
   }))
   .mutation(async ({ input, ctx }) => {
+    // Try Supabase first
+    const { data: supabaseStudent, error: supabaseError } = await supabase
+      .from('students')
+      .select('*')
+      .eq('email', input.email.toLowerCase())
+      .single();
+
+    if (supabaseStudent) {
+      const passwordHash = Buffer.from(input.password + 'student_fee_collector_2024').toString('base64');
+      if (supabaseStudent.password === passwordHash) {
+        // Set session cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        const sessionData = JSON.stringify({
+          studentId: supabaseStudent.id,
+          type: "student",
+        });
+        ctx.res.cookie(COOKIE_NAME, sessionData, cookieOptions);
+
+        return {
+          success: true,
+          student: {
+            id: supabaseStudent.id,
+            email: supabaseStudent.email,
+            name: supabaseStudent.name,
+          },
+        };
+      }
+    }
+
+    // Fallback to local database
     const student = await getStudentByEmail(input.email);
     
     if (!student) {
@@ -124,6 +155,25 @@ const adminProcedure = publicProcedure.use(({ ctx, next }) => {
 const studentManagementRouter = router({
   // Get all students
   list: adminProcedure.query(async () => {
+    // Fetch from Supabase first
+    const { data: supabaseStudents, error } = await supabase
+      .from('students')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && supabaseStudents && supabaseStudents.length > 0) {
+      return supabaseStudents.map((s: any) => ({
+        id: s.id,
+        email: s.email,
+        firstName: s.name?.split(' ')[0] || s.name,
+        lastName: s.name?.split(' ').slice(1).join(' ') || '',
+        studentId: s.id,
+        class: s.class,
+        status: 'active',
+      }));
+    }
+
+    // Fallback to local database
     return await getAllStudents();
   }),
 
@@ -539,6 +589,11 @@ const studentPortalRouter = router({
 });
 
 // ============= MAIN ROUTER =============
+
+// Initialize Supabase client
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://gtjjklulfzkwqjvoqclg.supabase.co';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0amprbHVsZnprd3Fqdm9xY2xnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTI4MjcsImV4cCI6MjA4OTY4ODgyN30.S3zxW1VQwJNxebjYCV8FSZb97_goMypPyO_p06bIDrc';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const appRouter = router({
   system: systemRouter,
