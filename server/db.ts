@@ -9,12 +9,15 @@ import {
   payments,
   examResults,
   notifications,
+  announcements,
   Student,
   Class,
   Enrollment,
   Payment,
   ExamResult,
-  Notification
+  Notification,
+  Announcement,
+  InsertAnnouncement
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -412,4 +415,70 @@ export async function updateNotificationSent(id: number): Promise<void> {
   if (!db) throw new Error("Database not available");
 
   await db.update(notifications).set({ sent: true, sentAt: new Date() }).where(eq(notifications.id, id));
+}
+
+
+// ============= ANNOUNCEMENT QUERIES =============
+
+export async function createAnnouncement(data: InsertAnnouncement): Promise<Announcement> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(announcements).values(data);
+  const insertId = (result as any)[0]?.insertId || (result as any).insertId;
+  if (!insertId || isNaN(insertId)) throw new Error("Failed to get insert ID");
+  const announcement = await db.select().from(announcements).where(eq(announcements.id, insertId)).limit(1);
+  if (announcement.length === 0) throw new Error("Failed to create announcement");
+  return announcement[0];
+}
+
+export async function getAnnouncementsByClass(classId: number): Promise<Announcement[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return await db.select()
+    .from(announcements)
+    .where(and(
+      eq(announcements.classId, classId),
+      eq(announcements.isActive, true),
+      gte(announcements.expiresAt, now)
+    ))
+    .orderBy(desc(announcements.createdAt));
+}
+
+export async function getAllAnnouncements(): Promise<Announcement[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select()
+    .from(announcements)
+    .orderBy(desc(announcements.createdAt));
+}
+
+export async function getAnnouncementById(id: number): Promise<Announcement | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function updateAnnouncement(id: number, data: Partial<Announcement>): Promise<Announcement> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(announcements).set(data).where(eq(announcements.id, id));
+  const announcement = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  if (announcement.length === 0) throw new Error("Failed to update announcement");
+  return announcement[0];
+}
+
+export async function deleteAnnouncement(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(announcements).where(eq(announcements.id, id));
+}
+
+export async function removeExpiredAnnouncements(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const now = new Date();
+  const result = await db.delete(announcements).where(lte(announcements.expiresAt, now));
+  return (result as any).rowsAffected || 0;
 }

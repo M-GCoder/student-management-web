@@ -163,3 +163,27 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Announcements table - stores class-wise announcements from admins
+ */
+export const announcements = mysqlTable("announcements", {
+  id: int("id").autoincrement().primaryKey(),
+  classId: int("classId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("imageUrl"),
+  documentUrl: text("documentUrl"),
+  createdBy: int("createdBy").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  classIdIdx: index("announcement_classId_idx").on(table.classId),
+  expiresAtIdx: index("announcement_expiresAt_idx").on(table.expiresAt),
+  isActiveIdx: index("announcement_isActive_idx").on(table.isActive),
+}));
+
+export type Announcement = typeof announcements.$inferSelect;
+export type InsertAnnouncement = typeof announcements.$inferInsert;

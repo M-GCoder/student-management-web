@@ -35,6 +35,13 @@ import {
   createNotification,
   getPaymentsByMonth,
   getResultsByClass,
+  createAnnouncement,
+  getAnnouncementsByClass,
+  getAllAnnouncements,
+  getAnnouncementById,
+  updateAnnouncement,
+  deleteAnnouncement,
+  removeExpiredAnnouncements,
 } from "./db";
 import { hashPassword, verifyPassword, generateStudentId } from "./auth";
 import {
@@ -629,6 +636,71 @@ export const appRouter = router({
   payments: paymentManagementRouter,
   results: resultsManagementRouter,
   portal: studentPortalRouter,
+  announcements: router({
+    create: adminProcedure
+      .input(z.object({
+        classId: z.number(),
+        title: z.string().min(1, "Title is required"),
+        description: z.string().min(1, "Description is required"),
+        imageUrl: z.string().optional(),
+        documentUrl: z.string().optional(),
+        expiresAt: z.date(),
+      }))
+      .mutation(async ({ input }) => {
+        return await createAnnouncement({
+          classId: input.classId,
+          title: input.title,
+          description: input.description,
+          imageUrl: input.imageUrl,
+          documentUrl: input.documentUrl,
+          expiresAt: input.expiresAt,
+          createdBy: 1,
+          isActive: true,
+        });
+      }),
+
+    list: adminProcedure.query(async () => {
+      return await getAllAnnouncements();
+    }),
+
+    getByClass: adminProcedure
+      .input(z.object({ classId: z.number() }))
+      .query(async ({ input }) => {
+        return await getAnnouncementsByClass(input.classId);
+      }),
+
+    get: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await getAnnouncementById(input.id);
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        imageUrl: z.string().optional(),
+        documentUrl: z.string().optional(),
+        expiresAt: z.date().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await updateAnnouncement(id, data);
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteAnnouncement(input.id);
+        return { success: true };
+      }),
+
+    removeExpired: adminProcedure.mutation(async () => {
+      const count = await removeExpiredAnnouncements();
+      return { removed: count };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

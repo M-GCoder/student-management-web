@@ -1,163 +1,206 @@
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Home, LayoutGrid, Wallet, GraduationCap, Bell, LogOut, User } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { trpc } from "@/lib/trpc";
+import { Home, LayoutGrid, DollarSign, BookOpen, Bell, LogOut } from "lucide-react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { skipToken } from "@tanstack/react-query";
 
 export default function StudentAnnouncementsPage() {
-  const [, setLocation] = useLocation();
-  const studentName = localStorage.getItem('studentName') || 'Student';
+  const [, navigate] = useLocation();
+  const { user, logout } = useAuth();
+  const [studentAnnouncements, setStudentAnnouncements] = useState<any[]>([]);
+
+  // Fetch student's class
+  const { data: enrollments = [] } = trpc.portal.getEnrollments.useQuery(
+    user?.id ? { studentId: user.id } : skipToken,
+    { enabled: !!user?.id }
+  );
+
+  // Fetch all announcements
+  const { data: allAnnouncements = [] } = trpc.announcements.list.useQuery();
+
+  // Filter announcements for student's classes and remove expired ones
+  useEffect(() => {
+    if (enrollments.length > 0 && allAnnouncements.length > 0) {
+      const classIds = enrollments.map((e: any) => e.classId);
+      const now = new Date();
+      
+      const filtered = allAnnouncements.filter((ann: any) => {
+        const isForStudentClass = classIds.includes(ann.classId);
+        const isNotExpired = new Date(ann.expiresAt) > now;
+        return isForStudentClass && isNotExpired;
+      });
+
+      setStudentAnnouncements(filtered.sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ));
+    }
+  }, [enrollments, allAnnouncements]);
 
   const handleLogout = () => {
-    localStorage.removeItem('studentId');
-    localStorage.removeItem('studentName');
-    setLocation('/');
-  };
-
-  const navigationItems = [
-    { icon: Home, label: 'Home', path: '/student/home', active: false },
-    { icon: LayoutGrid, label: 'Dashboard', path: '/student/dashboard', active: false },
-    { icon: Wallet, label: 'Payment', path: '/student/payments', active: false },
-    { icon: GraduationCap, label: 'Result', path: '/student/results', active: false },
-    { icon: Bell, label: 'Announcement', path: '/student/announcements', active: true },
-  ];
-
-  // Placeholder announcements
-  const announcements = [
-    {
-      id: 1,
-      title: 'Class Schedule Update',
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      content: 'The class schedule for next month has been updated. Please check your dashboard for the latest timings.',
-      type: 'schedule',
-    },
-    {
-      id: 2,
-      title: 'Exam Results Published',
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      content: 'Your exam results for the April 2026 exam have been published. Please check the Results section.',
-      type: 'results',
-    },
-    {
-      id: 3,
-      title: 'Fee Payment Reminder',
-      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      content: 'Please pay your pending fee for April 2026 by 08-Apr-2026 to avoid late charges.',
-      type: 'payment',
-    },
-  ];
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'schedule':
-        return 'bg-blue-100 text-blue-700';
-      case 'results':
-        return 'bg-green-100 text-green-700';
-      case 'payment':
-        return 'bg-yellow-100 text-yellow-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'schedule':
-        return '📅';
-      case 'results':
-        return '📊';
-      case 'payment':
-        return '💳';
-      default:
-        return '📢';
-    }
+    logout();
+    navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pb-24">
+    <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-gray-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-full flex items-center justify-center">
+              <span className="text-2xl">👤</span>
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground">{studentName}</h1>
-              <p className="text-xs text-muted-foreground">Announcements</p>
+              <h1 className="text-lg font-bold text-foreground">{user?.name || "Student"}</h1>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-          <Button
+          <button
             onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
+            className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-gray-100 transition flex items-center gap-2"
           >
             <LogOut className="w-4 h-4" />
             Logout
-          </Button>
+          </button>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-foreground mb-6">Announcements</h2>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold text-foreground mb-6">Announcements</h2>
 
-        {announcements.length === 0 ? (
-          <Card className="p-12 border border-border shadow-sm text-center">
-            <div className="text-5xl mb-4">📢</div>
-            <p className="text-muted-foreground">No announcements at the moment</p>
+        {studentAnnouncements.length === 0 ? (
+          <Card className="p-8 text-center border border-border shadow-sm">
+            <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">No announcements for your classes at this time.</p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {announcements.map((announcement) => (
-              <Card key={announcement.id} className="p-6 border border-border shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="text-3xl">{getTypeIcon(announcement.type)}</div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg font-bold text-foreground">{announcement.title}</h3>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(announcement.type)}`}>
-                        {announcement.type.charAt(0).toUpperCase() + announcement.type.slice(1)}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {announcement.date.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    <p className="text-sm text-foreground leading-relaxed">{announcement.content}</p>
+          <div className="grid gap-4">
+            {studentAnnouncements.map((announcement: any) => (
+              <Card
+                key={announcement.id}
+                className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    {announcement.title}
+                  </h3>
+                  <div className="text-sm text-muted-foreground mb-3">
+                    Posted on {new Date(announcement.createdAt).toLocaleDateString()} at{" "}
+                    {new Date(announcement.createdAt).toLocaleTimeString()}
                   </div>
+                </div>
+
+                <p className="text-foreground mb-4 leading-relaxed">
+                  {announcement.description}
+                </p>
+
+                {(announcement.imageUrl || announcement.documentUrl) && (
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-border">
+                    {announcement.imageUrl && (
+                      <a
+                        href={announcement.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                      >
+                        📷 View Image
+                      </a>
+                    )}
+                    {announcement.documentUrl && (
+                      <a
+                        href={announcement.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                      >
+                        📄 View Document
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                <div className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
+                  Expires: {new Date(announcement.expiresAt).toLocaleDateString()} at{" "}
+                  {new Date(announcement.expiresAt).toLocaleTimeString()}
                 </div>
               </Card>
             ))}
           </div>
         )}
-      </main>
+      </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border shadow-lg">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-around">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-around py-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
               <button
-                key={item.path}
-                onClick={() => setLocation(item.path)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
-                  item.active
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                onClick={() => navigate("/student/home")}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
               >
-                <Icon className={`w-6 h-6 ${item.active ? 'text-white' : ''}`} />
-                <span className="text-xs font-medium">{item.label}</span>
+                <Home className="w-6 h-6" />
+                <span className="text-xs font-medium">Home</span>
               </button>
-            );
-          })}
+            </TooltipTrigger>
+            <TooltipContent>Home</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/student/dashboard")}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <LayoutGrid className="w-6 h-6" />
+                <span className="text-xs font-medium">Dashboard</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Dashboard</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/student/payments")}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <DollarSign className="w-6 h-6" />
+                <span className="text-xs font-medium">Payments</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Payments</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/student/results")}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <BookOpen className="w-6 h-6" />
+                <span className="text-xs font-medium">Results</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Results</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/student/announcements")}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg transition-colors text-green-600 bg-green-50"
+              >
+                <Bell className="w-6 h-6" />
+                <span className="text-xs font-medium">Announcements</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Announcements</TooltipContent>
+          </Tooltip>
         </div>
-      </nav>
+      </div>
     </div>
   );
 }

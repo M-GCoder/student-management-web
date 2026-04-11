@@ -97,3 +97,14 @@
 - [x] Fetch payment data from Supabase for student dashboard
 - [x] Sync payment records between app and Supabase
 - [x] Test student login with Supabase credentials (15 tests passing)
+
+
+## Announcements Feature
+- [x] Create announcements table in Supabase/database
+- [x] Implement tRPC procedures for CRUD announcements
+- [x] Build admin announcements form (Title, Description, Class, Expiration, Image/Document)
+- [x] Build admin announcements list with Edit/Delete options
+- [x] Implement announcement expiration logic
+- [x] Build student announcements page
+- [x] Implement automatic removal of expired announcements
+- [x] Add file upload for announcement images/documents (8 tests passing)

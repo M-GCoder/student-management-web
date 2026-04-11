@@ -117,12 +117,12 @@ export default function AdminHome() {
               <div className="space-y-3">
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted-foreground">Total Students</span>
-                  <span className="text-2xl font-bold text-foreground">2,500</span>
+                  <span className="text-2xl font-bold text-foreground">20</span>
                 </div>
                 <div className="text-xs text-muted-foreground">Fe.g. T1</div>
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted-foreground">Active Students</span>
-                  <span className="text-2xl font-bold text-foreground">1,800</span>
+                  <span className="text-2xl font-bold text-foreground">20</span>
                 </div>
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted-foreground">Dropout Rate</span>
