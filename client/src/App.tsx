@@ -16,6 +16,8 @@ import StudentDashboardPage from "./pages/student/StudentDashboardPage";
 import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
 import StudentResultsPage from "./pages/student/StudentResultsPage";
 import StudentAnnouncementsPage from "./pages/student/StudentAnnouncementsPage";
+import StudentClassSchedulePage from "./pages/student/StudentClassSchedulePage";
+import StudentTestSchedulePage from "./pages/student/StudentTestSchedulePage";
 import AdminHome from "./pages/admin/AdminHome";
 import AnnouncementsPage from "./pages/admin/AnnouncementsPage";
 
@@ -28,6 +30,8 @@ function Router() {
       <Route path={"/student/payments"} component={StudentPaymentsPage} />
       <Route path={"/student/results"} component={StudentResultsPage} />
       <Route path={"/student/announcements"} component={StudentAnnouncementsPage} />
+      <Route path={"/student/class-schedule"} component={StudentClassSchedulePage} />
+      <Route path={"/student/test-schedule"} component={StudentTestSchedulePage} />
       <Route path={"/admin/dashboard"} component={AdminDashboard} />
       <Route path={"/admin/home"} component={AdminHome} />
       <Route path={"/admin/students"} component={StudentsPage} />
