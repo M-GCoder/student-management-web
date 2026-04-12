@@ -282,6 +282,8 @@ const classManagementRouter = router({
       className: z.string().min(1, "Class name is required"),
       capacity: z.number().optional(),
       classTimings: z.string().optional(),
+      classSchedule: z.string().optional(),
+      testSchedule: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       return await createClass(input);
@@ -294,6 +296,8 @@ const classManagementRouter = router({
       className: z.string().optional(),
       capacity: z.number().optional(),
       classTimings: z.string().optional(),
+      classSchedule: z.string().optional(),
+      testSchedule: z.string().optional(),
       status: z.enum(["active", "inactive", "completed"]).optional(),
     }))
     .mutation(async ({ input }) => {
@@ -471,14 +475,11 @@ const resultsManagementRouter = router({
   // Create exam result
   create: adminProcedure
     .input(z.object({
-      studentId: z.number(),
       classId: z.number(),
       examName: z.string().min(1, "Exam name is required"),
-      score: z.string(),
-      totalMarks: z.string(),
-      percentage: z.string().optional(),
-      grade: z.string().optional(),
       examDate: z.string(),
+      fileUrl: z.string().min(1, "File URL is required"),
+      fileName: z.string().min(1, "File name is required"),
       remarks: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
@@ -493,48 +494,35 @@ const resultsManagementRouter = router({
     }))
     .mutation(async ({ input }) => {
       const results = await getResultsByClass(input.classId);
-      const classData = await getClassById(input.classId);
 
       // Update all results with publishedDate
       const publishedDate = new Date().toISOString().split('T')[0];
+      let publishedCount = 0;
       for (const result of results) {
-        if (result.examName === input.examName) {
+        if (result.examName === input.examName && !result.publishedDate) {
           await updateExamResult(result.id, { publishedDate });
-
-          // Send notification email
-          const student = await getStudentById(result.studentId);
-          if (student) {
-            await sendResultNotification(
-              student.email,
-              `${student.firstName} ${student.lastName}`,
-              result.examName,
-              result.score.toString(),
-              result.totalMarks.toString(),
-              result.percentage?.toString() || "N/A",
-              result.grade || "N/A"
-            );
-
+          publishedCount++;
+          // Wait, since these results are class-wide now, we notify all enrolled students
+          const enrollments = await getEnrollmentsByClass(input.classId);
+          for (const enrollment of enrollments) {
             await createNotification({
-              studentId: result.studentId,
+              studentId: enrollment.studentId,
               type: "result_published",
               subject: "Exam Results Published",
-              message: `Your results for ${result.examName} have been published`,
+              message: `Results for ${result.examName} have been published.`,
               relatedResultId: result.id,
             });
           }
         }
       }
 
-      return { success: true, published: results.length };
+      return { success: true, published: publishedCount };
     }),
 
   // Update result
   update: adminProcedure
     .input(z.object({
       id: z.number(),
-      score: z.string().optional(),
-      percentage: z.string().optional(),
-      grade: z.string().optional(),
       remarks: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
