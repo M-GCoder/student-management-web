@@ -202,6 +202,8 @@ export async function createClass(data: {
   className: string;
   capacity?: number;
   classTimings?: string;
+  classSchedule?: string;
+  testSchedule?: string;
 }): Promise<Class> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -324,7 +326,23 @@ export async function getResultsByStudent(studentId: number): Promise<ExamResult
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(examResults).where(eq(examResults.studentId, studentId)).orderBy(desc(examResults.examDate));
+  // First get classes the student is enrolled in
+  const enrollments = await getEnrollmentsByStudent(studentId);
+  if (enrollments.length === 0) return [];
+
+  const classIds = enrollments.map(e => e.classId);
+  const results = [];
+  
+  // A simple hackathon-level implementation, fetch results for each class
+  for (const classId of classIds) {
+    const classResults = await db.select().from(examResults)
+      .where(eq(examResults.classId, classId))
+      .orderBy(desc(examResults.examDate));
+    results.push(...classResults);
+  }
+
+  // Sort them by exam date
+  return results.sort((a, b) => b.examDate.localeCompare(a.examDate));
 }
 
 export async function getResultsByClass(classId: number): Promise<ExamResult[]> {
@@ -335,25 +353,16 @@ export async function getResultsByClass(classId: number): Promise<ExamResult[]> 
 }
 
 export async function getLatestResult(studentId: number): Promise<ExamResult | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(examResults)
-    .where(eq(examResults.studentId, studentId))
-    .orderBy(desc(examResults.examDate))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  const results = await getResultsByStudent(studentId);
+  return results.length > 0 ? results[0] : undefined;
 }
 
 export async function createExamResult(data: {
-  studentId: number;
   classId: number;
   examName: string;
-  score: string;
-  totalMarks: string;
-  percentage?: string;
-  grade?: string;
   examDate: string;
+  fileUrl: string;
+  fileName: string;
   remarks?: string;
 }): Promise<ExamResult> {
   const db = await getDb();
