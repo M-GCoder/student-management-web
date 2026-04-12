@@ -66,6 +66,8 @@ export const classes = mysqlTable("classes", {
   className: varchar("className", { length: 100 }).notNull(),
   capacity: int("capacity"),
   classTimings: text("classTimings"), // JSON array of {day, startTime, endTime}
+  classSchedule: text("classSchedule"), // JSON array of {subject, day, startTime, endTime}
+  testSchedule: text("testSchedule"), // JSON array of {subject, date, startTime, endTime}
   status: mysqlEnum("status", ["active", "inactive", "completed"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -122,20 +124,16 @@ export type InsertPayment = typeof payments.$inferInsert;
  */
 export const examResults = mysqlTable("examResults", {
   id: int("id").autoincrement().primaryKey(),
-  studentId: int("studentId").notNull(),
   classId: int("classId").notNull(),
   examName: varchar("examName", { length: 100 }).notNull(),
-  score: decimal("score", { precision: 5, scale: 2 }).notNull(),
-  totalMarks: decimal("totalMarks", { precision: 5, scale: 2 }).notNull(),
-  percentage: decimal("percentage", { precision: 5, scale: 2 }),
-  grade: varchar("grade", { length: 2 }), // A, B, C, D, F
   examDate: varchar("examDate", { length: 10 }).notNull(), // YYYY-MM-DD
+  fileUrl: text("fileUrl").notNull(), // base64 or URL
+  fileName: varchar("fileName", { length: 255 }).notNull(),
   publishedDate: varchar("publishedDate", { length: 10 }), // YYYY-MM-DD
   remarks: text("remarks"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
-  studentIdIdx: index("result_studentId_idx").on(table.studentId),
   classIdIdx: index("result_classId_idx").on(table.classId),
   examDateIdx: index("result_examDate_idx").on(table.examDate),
 }));
