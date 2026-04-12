@@ -132,13 +132,19 @@ export default function StudentDashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4 border border-border shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
+          <Card
+            className="p-4 border border-border shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => setLocation('/student/class-schedule')}
+          >
             <div className="text-center">
-              <div className="text-3xl mb-2">📝</div>
-              <p className="text-sm font-medium text-foreground">View Assignments</p>
+              <div className="text-3xl mb-2">📚</div>
+              <p className="text-sm font-medium text-foreground">Class Schedule</p>
             </div>
           </Card>
-          <Card className="p-4 border border-border shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
+          <Card
+            className="p-4 border border-border shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => setLocation('/student/test-schedule')}
+          >
             <div className="text-center">
               <div className="text-3xl mb-2">📚</div>
               <p className="text-sm font-medium text-foreground">Test Schedule</p>
@@ -156,11 +162,10 @@ export default function StudentDashboardPage() {
               <button
                 key={item.path}
                 onClick={() => setLocation(item.path)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
-                  item.active
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${item.active
+                  ? 'bg-accent text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
               >
                 <Icon className={`w-6 h-6 ${item.active ? 'text-white' : ''}`} />
                 <span className="text-xs font-medium">{item.label}</span>
