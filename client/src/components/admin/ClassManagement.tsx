@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, Edit2, Users, Clock, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Users, Clock, ChevronDown, ChevronUp, X, CalendarDays, FileText } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
@@ -13,11 +13,26 @@ interface ClassTiming {
   endTime: string;
 }
 
+interface ScheduleEntry {
+  subject: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface TestEntry {
+  subject: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function ClassManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [expandedClassId, setExpandedClassId] = useState<number | null>(null);
+  const [expandedTab, setExpandedTab] = useState<'students' | 'classSchedule' | 'testSchedule'>('students');
   const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
   const [formData, setFormData] = useState({
     className: '',
@@ -26,6 +41,10 @@ export default function ClassManagement() {
   const [timings, setTimings] = useState<ClassTiming[]>([
     { day: 'Mon', startTime: '', endTime: '' },
   ]);
+
+  // Schedule editors for expanded class
+  const [classScheduleEntries, setClassScheduleEntries] = useState<ScheduleEntry[]>([]);
+  const [testScheduleEntries, setTestScheduleEntries] = useState<TestEntry[]>([]);
 
   // Fetch classes
   const { data: classes = [], refetch } = trpc.classes.list.useQuery();
@@ -43,10 +62,7 @@ export default function ClassManagement() {
   const createMutation = trpc.classes.create.useMutation({
     onSuccess: () => {
       toast.success('Class created successfully');
-      setFormData({
-        className: '',
-        capacity: '',
-      });
+      setFormData({ className: '', capacity: '' });
       setTimings([{ day: 'Mon', startTime: '', endTime: '' }]);
       setIsDialogOpen(false);
       refetch();
@@ -56,7 +72,7 @@ export default function ClassManagement() {
     },
   });
 
-  // Update class mutation (for updating timings on existing classes)
+  // Update class mutation
   const updateMutation = trpc.classes.update.useMutation({
     onSuccess: () => {
       toast.success('Class updated successfully');
@@ -96,10 +112,7 @@ export default function ClassManagement() {
       toast.error('Class name is required');
       return;
     }
-
-    // Filter out empty timings
     const validTimings = timings.filter(t => t.day && t.startTime && t.endTime);
-
     createMutation.mutate({
       className: formData.className,
       capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
@@ -135,33 +148,80 @@ export default function ClassManagement() {
       setSelectedStudentIds([]);
     } else {
       setExpandedClassId(classId);
+      setExpandedTab('students');
       setSelectedStudentIds([]);
+      // Load existing schedules for this class
+      const cls = classes.find((c: any) => c.id === classId) as any;
+      if (cls) {
+        setClassScheduleEntries(parseJSON(cls.classSchedule, []));
+        setTestScheduleEntries(parseJSON(cls.testSchedule, []));
+      }
     }
+  };
+
+  // Save class schedule
+  const handleSaveClassSchedule = (classId: number) => {
+    const valid = classScheduleEntries.filter(e => e.subject && e.day && e.startTime && e.endTime);
+    updateMutation.mutate({
+      id: classId,
+      classSchedule: JSON.stringify(valid),
+    });
+  };
+
+  // Save test schedule
+  const handleSaveTestSchedule = (classId: number) => {
+    const valid = testScheduleEntries.filter(e => e.subject && e.date && e.startTime && e.endTime);
+    updateMutation.mutate({
+      id: classId,
+      testSchedule: JSON.stringify(valid),
+    });
   };
 
   // Timing helpers
   const addTiming = () => {
     setTimings([...timings, { day: 'Mon', startTime: '', endTime: '' }]);
   };
-
   const removeTiming = (index: number) => {
     setTimings(timings.filter((_, i) => i !== index));
   };
-
   const updateTiming = (index: number, field: keyof ClassTiming, value: string) => {
     const updated = [...timings];
     updated[index] = { ...updated[index], [field]: value };
     setTimings(updated);
   };
 
-  const parseTimings = (timingsStr: string | null | undefined): ClassTiming[] => {
-    if (!timingsStr) return [];
-    try {
-      return JSON.parse(timingsStr);
-    } catch {
-      return [];
-    }
+  // Schedule entry helpers
+  const addClassScheduleEntry = () => {
+    setClassScheduleEntries([...classScheduleEntries, { subject: '', day: 'Mon', startTime: '', endTime: '' }]);
   };
+  const removeClassScheduleEntry = (index: number) => {
+    setClassScheduleEntries(classScheduleEntries.filter((_, i) => i !== index));
+  };
+  const updateClassScheduleEntry = (index: number, field: keyof ScheduleEntry, value: string) => {
+    const updated = [...classScheduleEntries];
+    updated[index] = { ...updated[index], [field]: value };
+    setClassScheduleEntries(updated);
+  };
+
+  // Test entry helpers
+  const addTestScheduleEntry = () => {
+    setTestScheduleEntries([...testScheduleEntries, { subject: '', date: '', startTime: '', endTime: '' }]);
+  };
+  const removeTestScheduleEntry = (index: number) => {
+    setTestScheduleEntries(testScheduleEntries.filter((_, i) => i !== index));
+  };
+  const updateTestScheduleEntry = (index: number, field: keyof TestEntry, value: string) => {
+    const updated = [...testScheduleEntries];
+    updated[index] = { ...updated[index], [field]: value };
+    setTestScheduleEntries(updated);
+  };
+
+  function parseJSON<T>(str: string | null | undefined, fallback: T): T {
+    if (!str) return fallback;
+    try { return JSON.parse(str); } catch { return fallback; }
+  }
+
+  const parseTimings = (timingsStr: string | null | undefined): ClassTiming[] => parseJSON(timingsStr, []);
 
   const enrolledStudentIdsSet = new Set(enrolledStudents.map((e: any) => e.studentId));
 
@@ -187,9 +247,7 @@ export default function ClassManagement() {
                   type="text"
                   placeholder="e.g., Class 11 A"
                   value={formData.className}
-                  onChange={(e) =>
-                    setFormData({ ...formData, className: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, className: e.target.value })}
                   className="input-field"
                 />
               </div>
@@ -200,9 +258,7 @@ export default function ClassManagement() {
                   type="number"
                   placeholder="Number of students"
                   value={formData.capacity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, capacity: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                   className="input-field"
                 />
               </div>
@@ -214,13 +270,7 @@ export default function ClassManagement() {
                     <Clock className="w-4 h-4" />
                     Class Timings
                   </label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addTiming}
-                    className="h-7 text-xs"
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={addTiming} className="h-7 text-xs">
                     <Plus className="w-3 h-3 mr-1" /> Add Timing
                   </Button>
                 </div>
@@ -232,31 +282,13 @@ export default function ClassManagement() {
                         onChange={(e) => updateTiming(index, 'day', e.target.value)}
                         className="input-field text-sm py-1 px-2 w-20"
                       >
-                        {DAYS.map(day => (
-                          <option key={day} value={day}>{day}</option>
-                        ))}
+                        {DAYS.map(day => (<option key={day} value={day}>{day}</option>))}
                       </select>
-                      <Input
-                        type="time"
-                        value={timing.startTime}
-                        onChange={(e) => updateTiming(index, 'startTime', e.target.value)}
-                        className="input-field text-sm py-1 flex-1"
-                      />
+                      <Input type="time" value={timing.startTime} onChange={(e) => updateTiming(index, 'startTime', e.target.value)} className="input-field text-sm py-1 flex-1" />
                       <span className="text-xs text-muted-foreground">to</span>
-                      <Input
-                        type="time"
-                        value={timing.endTime}
-                        onChange={(e) => updateTiming(index, 'endTime', e.target.value)}
-                        className="input-field text-sm py-1 flex-1"
-                      />
+                      <Input type="time" value={timing.endTime} onChange={(e) => updateTiming(index, 'endTime', e.target.value)} className="input-field text-sm py-1 flex-1" />
                       {timings.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeTiming(index)}
-                          className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeTiming(index)} className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10">
                           <X className="w-3 h-3" />
                         </Button>
                       )}
@@ -266,19 +298,8 @@ export default function ClassManagement() {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="flex-1 bg-accent hover:bg-accent/90 text-white"
-                >
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={createMutation.isPending} className="flex-1 bg-accent hover:bg-accent/90 text-white">
                   {createMutation.isPending ? 'Creating...' : 'Create Class'}
                 </Button>
               </div>
@@ -309,17 +330,8 @@ export default function ClassManagement() {
                 <>
                   <tr key={classItem.id} className="border-b border-border hover:bg-muted/50">
                     <td className="table-cell w-8">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() => toggleExpand(classItem.id)}
-                      >
-                        {isExpanded ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleExpand(classItem.id)}>
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </Button>
                     </td>
                     <td className="table-cell font-semibold">{classItem.className}</td>
@@ -327,10 +339,7 @@ export default function ClassManagement() {
                       {classTimings.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {classTimings.map((t, i) => (
-                            <span
-                              key={i}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
-                            >
+                            <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                               {t.day} {t.startTime}–{t.endTime}
                             </span>
                           ))}
@@ -341,115 +350,194 @@ export default function ClassManagement() {
                     </td>
                     <td className="table-cell text-center">{classItem.capacity || '-'}</td>
                     <td className="table-cell">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classItem.status === 'active'
-                          ? 'badge-success'
-                          : classItem.status === 'inactive'
-                            ? 'badge-pending'
-                            : 'badge-danger'
-                          }`}
-                      >
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classItem.status === 'active' ? 'badge-success' : classItem.status === 'inactive' ? 'badge-pending' : 'badge-danger'}`}>
                         {classItem.status.charAt(0).toUpperCase() + classItem.status.slice(1)}
                       </span>
                     </td>
                     <td className="table-cell">
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteClass(classItem.id)}
-                          disabled={deleteMutation.isPending}
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteClass(classItem.id)} disabled={deleteMutation.isPending}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </td>
                   </tr>
 
-                  {/* Expanded Row: Student Enrollment */}
+                  {/* Expanded Row with Tabs */}
                   {isExpanded && (
                     <tr key={`${classItem.id}-expanded`}>
-                      <td colSpan={7} className="p-0">
-                        <div className="bg-muted/30 border-b border-border p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Users className="w-4 h-4 text-accent" />
-                            <h4 className="font-semibold text-sm text-foreground">
-                              Manage Students — {classItem.className}
-                            </h4>
+                      <td colSpan={6} className="p-0">
+                        <div className="bg-muted/30 border-b border-border">
+                          {/* Tab Navigation */}
+                          <div className="flex border-b border-border">
+                            <button
+                              onClick={() => setExpandedTab('students')}
+                              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${expandedTab === 'students' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            >
+                              <Users className="w-4 h-4" /> Students
+                            </button>
+                            <button
+                              onClick={() => setExpandedTab('classSchedule')}
+                              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${expandedTab === 'classSchedule' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            >
+                              <CalendarDays className="w-4 h-4" /> Class Schedule
+                            </button>
+                            <button
+                              onClick={() => setExpandedTab('testSchedule')}
+                              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${expandedTab === 'testSchedule' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            >
+                              <FileText className="w-4 h-4" /> Test Schedule
+                            </button>
                           </div>
 
-                          {/* Currently Enrolled */}
-                          {enrolledStudents.length > 0 && (
-                            <div className="mb-4">
-                              <p className="text-xs font-medium text-muted-foreground mb-2">
-                                Currently Enrolled ({enrolledStudents.length})
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {enrolledStudents.map((enrollment: any) => {
-                                  const student = allStudents.find((s: any) => s.id === enrollment.studentId);
-                                  return (
-                                    <span
-                                      key={enrollment.id}
-                                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
-                                    >
-                                      {student
-                                        ? `${student.firstName} ${student.lastName}`
-                                        : `Student #${enrollment.studentId}`}
-                                    </span>
-                                  );
-                                })}
+                          <div className="p-4">
+                            {/* Students Tab */}
+                            {expandedTab === 'students' && (
+                              <div>
+                                <h4 className="font-semibold text-sm text-foreground mb-3">
+                                  Manage Students — {classItem.className}
+                                </h4>
+                                {enrolledStudents.length > 0 && (
+                                  <div className="mb-4">
+                                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                                      Currently Enrolled ({enrolledStudents.length})
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {enrolledStudents.map((enrollment: any) => {
+                                        const student = allStudents.find((s: any) => s.id === enrollment.studentId);
+                                        return (
+                                          <span key={enrollment.id} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            {student ? `${student.firstName} ${student.lastName}` : `Student #${enrollment.studentId}`}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Select Students to Add</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto mb-3">
+                                  {allStudents
+                                    .filter((s: any) => !enrolledStudentIdsSet.has(s.id))
+                                    .map((student: any) => (
+                                      <label key={student.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-xs ${selectedStudentIds.includes(student.id) ? 'border-accent bg-accent/10' : 'border-border bg-white hover:bg-muted/50'}`}>
+                                        <input type="checkbox" checked={selectedStudentIds.includes(student.id)} onChange={() => toggleStudentSelection(student.id)} className="accent-accent" />
+                                        <span className="truncate">{student.firstName} {student.lastName}</span>
+                                      </label>
+                                    ))}
+                                  {allStudents.filter((s: any) => !enrolledStudentIdsSet.has(s.id)).length === 0 && (
+                                    <p className="text-xs text-muted-foreground col-span-full py-2">All students are already enrolled.</p>
+                                  )}
+                                </div>
+                                {selectedStudentIds.length > 0 && (
+                                  <Button size="sm" className="bg-accent hover:bg-accent/90 text-white" onClick={() => handleEnrollStudents(classItem.id)} disabled={bulkEnrollMutation.isPending}>
+                                    {bulkEnrollMutation.isPending ? 'Enrolling...' : `Enroll ${selectedStudentIds.length} Student(s)`}
+                                  </Button>
+                                )}
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Select Students to Enroll */}
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                              Select Students to Add
-                            </p>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto mb-3">
-                              {allStudents
-                                .filter((s: any) => !enrolledStudentIdsSet.has(s.id))
-                                .map((student: any) => (
-                                  <label
-                                    key={student.id}
-                                    className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-xs ${selectedStudentIds.includes(student.id)
-                                      ? 'border-accent bg-accent/10'
-                                      : 'border-border bg-white hover:bg-muted/50'
-                                      }`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedStudentIds.includes(student.id)}
-                                      onChange={() => toggleStudentSelection(student.id)}
-                                      className="accent-accent"
-                                    />
-                                    <span className="truncate">
-                                      {student.firstName} {student.lastName}
-                                    </span>
-                                  </label>
-                                ))}
-                              {allStudents.filter((s: any) => !enrolledStudentIdsSet.has(s.id)).length === 0 && (
-                                <p className="text-xs text-muted-foreground col-span-full py-2">
-                                  All students are already enrolled in this class.
-                                </p>
-                              )}
-                            </div>
-                            {selectedStudentIds.length > 0 && (
-                              <Button
-                                size="sm"
-                                className="bg-accent hover:bg-accent/90 text-white"
-                                onClick={() => handleEnrollStudents(classItem.id)}
-                                disabled={bulkEnrollMutation.isPending}
-                              >
-                                {bulkEnrollMutation.isPending
-                                  ? 'Enrolling...'
-                                  : `Enroll ${selectedStudentIds.length} Student(s)`}
-                              </Button>
+                            {/* Class Schedule Tab */}
+                            {expandedTab === 'classSchedule' && (
+                              <div>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-sm text-foreground">
+                                    Class Schedule — {classItem.className}
+                                  </h4>
+                                  <Button variant="outline" size="sm" onClick={addClassScheduleEntry} className="h-7 text-xs">
+                                    <Plus className="w-3 h-3 mr-1" /> Add Entry
+                                  </Button>
+                                </div>
+                                {classScheduleEntries.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground py-4 text-center">No class schedule entries. Click "Add Entry" to start.</p>
+                                ) : (
+                                  <div className="space-y-2 mb-4">
+                                    {classScheduleEntries.map((entry, index) => (
+                                      <div key={index} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-border">
+                                        <Input
+                                          type="text"
+                                          placeholder="Subject"
+                                          value={entry.subject}
+                                          onChange={(e) => updateClassScheduleEntry(index, 'subject', e.target.value)}
+                                          className="input-field text-sm py-1 flex-1"
+                                        />
+                                        <select
+                                          value={entry.day}
+                                          onChange={(e) => updateClassScheduleEntry(index, 'day', e.target.value)}
+                                          className="input-field text-sm py-1 px-2 w-20"
+                                        >
+                                          {DAYS.map(day => (<option key={day} value={day}>{day}</option>))}
+                                        </select>
+                                        <Input type="time" value={entry.startTime} onChange={(e) => updateClassScheduleEntry(index, 'startTime', e.target.value)} className="input-field text-sm py-1 w-28" />
+                                        <span className="text-xs text-muted-foreground">to</span>
+                                        <Input type="time" value={entry.endTime} onChange={(e) => updateClassScheduleEntry(index, 'endTime', e.target.value)} className="input-field text-sm py-1 w-28" />
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => removeClassScheduleEntry(index)} className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10">
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <Button
+                                  size="sm"
+                                  className="bg-accent hover:bg-accent/90 text-white"
+                                  onClick={() => handleSaveClassSchedule(classItem.id)}
+                                  disabled={updateMutation.isPending}
+                                >
+                                  {updateMutation.isPending ? 'Saving...' : 'Save Class Schedule'}
+                                </Button>
+                              </div>
+                            )}
+
+                            {/* Test Schedule Tab */}
+                            {expandedTab === 'testSchedule' && (
+                              <div>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-sm text-foreground">
+                                    Test Schedule — {classItem.className}
+                                  </h4>
+                                  <Button variant="outline" size="sm" onClick={addTestScheduleEntry} className="h-7 text-xs">
+                                    <Plus className="w-3 h-3 mr-1" /> Add Entry
+                                  </Button>
+                                </div>
+                                {testScheduleEntries.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground py-4 text-center">No test schedule entries. Click "Add Entry" to start.</p>
+                                ) : (
+                                  <div className="space-y-2 mb-4">
+                                    {testScheduleEntries.map((entry, index) => (
+                                      <div key={index} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-border">
+                                        <Input
+                                          type="text"
+                                          placeholder="Subject"
+                                          value={entry.subject}
+                                          onChange={(e) => updateTestScheduleEntry(index, 'subject', e.target.value)}
+                                          className="input-field text-sm py-1 flex-1"
+                                        />
+                                        <Input
+                                          type="date"
+                                          value={entry.date}
+                                          onChange={(e) => updateTestScheduleEntry(index, 'date', e.target.value)}
+                                          className="input-field text-sm py-1 w-36"
+                                        />
+                                        <Input type="time" value={entry.startTime} onChange={(e) => updateTestScheduleEntry(index, 'startTime', e.target.value)} className="input-field text-sm py-1 w-28" />
+                                        <span className="text-xs text-muted-foreground">to</span>
+                                        <Input type="time" value={entry.endTime} onChange={(e) => updateTestScheduleEntry(index, 'endTime', e.target.value)} className="input-field text-sm py-1 w-28" />
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => removeTestScheduleEntry(index)} className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10">
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <Button
+                                  size="sm"
+                                  className="bg-accent hover:bg-accent/90 text-white"
+                                  onClick={() => handleSaveTestSchedule(classItem.id)}
+                                  disabled={updateMutation.isPending}
+                                >
+                                  {updateMutation.isPending ? 'Saving...' : 'Save Test Schedule'}
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
