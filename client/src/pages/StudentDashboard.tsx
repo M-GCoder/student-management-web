@@ -146,10 +146,10 @@ export default function StudentDashboard() {
           <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Last Exam Score</p>
+                <p className="text-sm text-muted-foreground font-medium">Last Exam</p>
                 <h3 className="text-2xl font-bold text-foreground mt-1">
                   {latestResult
-                    ? `${latestResult.score}/${latestResult.totalMarks}`
+                    ? latestResult.examName
                     : 'No results'}
                 </h3>
               </div>
@@ -161,22 +161,11 @@ export default function StudentDashboard() {
               <>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium text-foreground">
-                    {latestResult.percentage}%
+                    {latestResult.examDate}
                   </span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-accent transition-all"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (parseFloat(latestResult.percentage?.toString() || '0') || 0)
-                        )}%`,
-                      }}
-                    />
-                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Grade: <span className="font-semibold text-foreground">{latestResult.grade}</span>
+                  File: <span className="font-semibold text-foreground">{latestResult.fileName}</span>
                 </p>
               </>
             )}
@@ -260,20 +249,20 @@ export default function StudentDashboard() {
                 <p className="text-lg font-semibold text-foreground">{latestResult.examDate}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Score</p>
+                <p className="text-sm text-muted-foreground">Exam</p>
                 <p className="text-lg font-semibold text-foreground">
-                  {latestResult.score}/{latestResult.totalMarks}
+                  {latestResult.examName}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Percentage</p>
+                <p className="text-sm text-muted-foreground">Date</p>
                 <p className="text-lg font-semibold text-foreground">
-                  {latestResult.percentage}%
+                  {latestResult.examDate}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Grade</p>
-                <p className="text-lg font-semibold text-foreground">{latestResult.grade}</p>
+                <p className="text-sm text-muted-foreground">File</p>
+                <p className="text-lg font-semibold text-foreground">{latestResult.fileName}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Published</p>

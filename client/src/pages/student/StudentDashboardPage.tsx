@@ -69,13 +69,13 @@ export default function StudentDashboardPage() {
                 Latest
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mb-1">Last Exam Score</p>
-            <h3 className="text-3xl font-bold text-foreground mb-2">
-              {latestResult?.score ?? 'N/A'}
+            <p className="text-sm text-muted-foreground mb-1">Last Exam</p>
+            <h3 className="text-lg font-bold text-foreground mb-2">
+              {latestResult?.examName ?? 'No Exam'}
             </h3>
             {latestResult && (
               <p className="text-xs text-muted-foreground">
-                Exam: {latestResult.examName}
+                Date: {latestResult.examDate}
               </p>
             )}
           </Card>
